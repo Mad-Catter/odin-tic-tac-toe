@@ -14,6 +14,8 @@ const boardObject = (function () {
         "", "", "",
         "", "", ""
     ];
+    const listOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
+    const staticListOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
     let lastPlayed = ""
     const victory = (mark) => {
         console.log(`Player ${mark} has won!`);
@@ -25,34 +27,34 @@ const boardObject = (function () {
             boardArray[i] = "";
         }
         lastPlayed = "";
+        listOfVictories.splice(0,listOfVictories.length);
+        for (const item of staticListOfVictories) {
+            listOfVictories.push(item);
+        }
     }
     const checkVictory = (mark) => {
-        if(!boardArray.includes("")) {
-            console.log("Its a tie! All tiles are filled!")
-            boardClear();
-        } else if (boardArray[0] === mark) {
-            if ((boardArray[1] === mark) && (boardArray[2] === mark)) {
-                victory(mark);
-            } else if ((boardArray[3] === mark) && (boardArray[6] === mark)) {
-                victory(mark);
-            } else if ((boardArray[4] === mark) && (boardArray[8] === mark)) {
-                victory(mark);
-            }
-        } else if (boardArray[4] === mark) {
-            if ((boardArray[1] === mark) && (boardArray[7] === mark)) {
-                victory(mark);
-            } else if ((boardArray[3] === mark) && (boardArray[5] === mark)) {
-                victory(mark);
-            } else if ((boardArray[2] === mark) && (boardArray[6] === mark)) {
+        for (const item of listOfVictories) {
+            const a = boardArray[item[0]];
+            const b = boardArray[item[1]];
+            const c = boardArray[item[2]];
+            const array = [a,b,c];
+            // TODO: This does not work properly. Removing while iterating over the list will potentially screw up the list.
+            // Additionally, I want to try to do better on the a b c definitions.  I would like to get that all onto one line if possible.
+            // The way I reset the list of victories isnt amazing either.  I could maybe go back to the idea of setting the item to false instead.
+            // But I wanted to try to cut down on the amount of iterations instead of just constantly rechecking the same false item.
+            // Im sure its not a massive preformance loss or anything, but its something I want to keep in mind.
+            if (array.includes("O") && array.includes("X")) {
+                listOfVictories.splice(listOfVictories.indexOf(item), 1)
+            } else if (!(array.includes(""))) {
                 victory(mark);
             }
-        } else if (boardArray[8] === mark) {
-            if ((boardArray[2] === mark) && (boardArray[5] === mark)) {
-                victory(mark);
-            } else if ((boardArray[6] === mark) && (boardArray[7] === mark)) {
-                victory(mark);
-            }
-        } 
+      }
+      if (listOfVictories.length === 0) {
+        console.log("Its a tie! All tiles are filled!")
+        boardClear();
+      }
+      console.log(listOfVictories);
+
     }
     const changePosition = (mark, position) => {
         if (lastPlayed === mark) {
@@ -85,19 +87,3 @@ const playerO = playerFactory("O");
 // Have a function that checks if the value is true or not.  If it is not false, it destructures each value in the array and checks to see if is 
 // The function checks each value to see if it contains both X and O, if it does the value is then set to false.
 //  If it does not contain both, it checks for a victory.
-
-// const listOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
-// for item in listOfVictories {
-//     if (item) {
-//          let {item[0]:a item[2]:b item[3]:c} = boardArray;
-//          const array = [a,b,c]
-//          if (array.includes("O") && array.includes("X")) {
-//            item = false;
-//          } else if (!(array.includes(""))) {
-//              victory
-//          }
-//      }
-// }
-// if (listofVictories.some(Boolean)) {
-//  tie
-// }
