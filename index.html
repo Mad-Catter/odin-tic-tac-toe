@@ -5,9 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chokokutai&family=Roboto:ital,wght@0,100..900;1,100..900&family=Science+Gothic:wght@100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    
+    <header>
+        <h1>Tic Tac Toe: The Movie: The Game</h1>
+        <button class="reset" type="button">Reset Game</button>
+    </header>
+    <main>
+        <div class="left side">
+            
+            <input type="text" name="player-o" id="player-o" placeholder="Rome-O">
+            <img src="assets/RomeO.png" alt="">
+            <p class="score score-O">0</p>
+        </div>
+        <div class="grid-container">
+            <div class="tile square0">
+                <p class="text">X</p>
+            </div>
+            <div class="tile square1">
+                <p class="text">O</p>
+            </div>
+            <div class="tile square2">
+                <p class="text"></p>
+            </div>
+            <div class="tile square3">
+                <p class="text">O</p>
+            </div>
+            <div class="tile square4">
+                <p class="text"></p>
+            </div>
+            <div class="tile square5">
+                <p class="text"></p>
+            </div>
+            <div class="tile square6">
+                <p class="text"></p>
+            </div>
+            <div class="tile square7">
+                <p class="text">X</p>
+            </div>
+            <div class="tile square8">
+                <p class="text"></p>
+            </div>
+        </div>
+        <div class="right side">
+            <input type="text" name="player-x" id="player-x" placeholder="Juli-X">
+            <img src="assets/JuliX.png" alt="">
+            <p class="score score-X">0</p>
+        </div>
+    </main>
     <script src="script.js"></script>
 </body>
 </html>
