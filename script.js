@@ -17,18 +17,12 @@ function startGame() {
         ];
         const listOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
         const staticListOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
-        let tallyO = 0;
-        let tallyX = 0;
+        
         let lastPlayed = ""
         const victory = (mark) => {
             console.log(`Player ${mark} has won!`);
-            if (mark === "X") {
-                tallyX++;
-            } else {
-                tallyO++;
-            }
-            console.log(`The score is X: ${tallyX} to O: ${tallyO}`);
             boardClear();
+            return `${mark}victory`;
         }
         function boardClear() {
             console.log("Resetting Game");
@@ -49,27 +43,31 @@ function startGame() {
                 if (array.includes("O") && array.includes("X")) {
                     listOfVictories.splice(listOfVictories.indexOf(item), 1)
                 } else if (!(array.includes(""))) {
-                    victory(mark);
+                    return victory(mark);
                 }
             }
             
             if (listOfVictories.length === 0) {
                 console.log("Its a tie! All tiles are filled!")
                 boardClear();
+                return "tie"
+            } else {
+                return "";
             }
         }
 
         const changePosition = (mark, position) => {
             if (lastPlayed === mark) {
                 console.log(`Player ${mark} just played! You can't take two turns in a row, thats cheating!`)
+                return "doublePlay";
             } else if (boardArray[position] !== "") {
                 console.log("That position is taken! Choose another one!")
+                return "positionTaken";
             } else {
                 boardArray[position] = mark;
                 console.log(boardArray);
                 lastPlayed = mark;
-                checkVictory(mark);
-                
+                return checkVictory(mark);
             }
         }
         return {changePosition}
@@ -84,6 +82,107 @@ function startGame() {
 
     return {turnX: playerX.changePosition, turnO: playerO.changePosition}
 }
+// Need to decide which side goes first.
+//Depending on choice, a variable deciding whos turn it is is set to either x or o
+// Each tile has an event listener that will trigger player X/O placement depending on the turn variable and will switch the turn variable.
+// The text content of that tile's text content will be set to x or o.
+// A new game gets called each time the game concludes.  A running tally of x vs o will be increased.
+
+(function() {
+    let currentTurn;
+    let tallyO = 0;
+    let tallyX = 0;
+    const domScoreO = document.querySelector(".score-o");
+    const domScoreX = document.querySelector(".score-x");
+    const playerNameO = document.querySelector("#player-o")
+    const playerNameX = document.querySelector("#player-x")
+    const info = document.querySelector(".information");
+    const endScreen = document.querySelector(".end-screen");
+    const body = document.querySelector("body");
+    
+    const modal = document.querySelector(".button-screen");
+    modal.showModal();
+    const buttons = document.querySelectorAll(".button-container button");
+    for (const button of buttons) {
+        button.addEventListener("click", e => {
+            modal.close();
+            if (button.classList.contains("o-first")) {
+                currentTurn = "O";
+            } else {
+                currentTurn = "X";
+            }
+            
+        })
+    }
+    let game = startGame();
+    const tiles = document.querySelectorAll(".tile");
+    for (const tile of tiles) {
+        tile.addEventListener("click", e => {
+            tileNum = tile.classList.value.replace("tile square", "")
+            if (currentTurn === "O") {
+                let action = game.turnO(tileNum);
+                if (action === "") {
+                    tile.textContent = "O";
+                    currentTurn = "X";
+                } else if (action === "Ovictory") {
+                    e.stopPropagation();
+                    endScreen.textContent = `${playerNameO.value} has won!`;
+                    endScreen.show();
+                    tallyO++;
+                    resetBoard();
+                } else if (action === "tie") {
+                    e.stopPropagation();
+                    endScreen.textContent ="Its a tie!";
+                    endScreen.show();
+                    resetBoard();
+                }else {
+                    e.stopPropagation();
+                    info.textContent = "That tile is already taken!  Choose another one!";
+                    info.show();
+                }
+            } else {
+                let action = game.turnX(tileNum);
+                if (action === "") {
+                    tile.textContent = "X";
+                    currentTurn = "O";
+                } else if (action === "Xvictory") {
+                    e.stopPropagation();
+                    endScreen.textContent = `${playerNameX.value} has won!`;
+                    endScreen.show();
+                    tallyX++;
+                    resetBoard();
+                } else if (action === "tie") {
+                    e.stopPropagation();
+                    endScreen.textContent ="Its a tie!";
+                    endScreen.show();
+                    resetBoard();
+                }else {
+                    e.stopPropagation();
+                    info.textContent = "That tile is already taken!  Choose another one!";
+                    info.show();
+                }
+            }
+        })
+    }
+    function resetBoard() {
+        for (const tile of tiles) {
+            tile.textContent = "";
+        }
+        domScoreO.textContent = tallyO;
+        domScoreX.textContent = tallyX;
+        game = startGame();
+        modal.showModal()
+    }
+    const resetButton = document.querySelector(".reset");
+    resetButton.addEventListener("click", e => {
+        resetBoard();
+    })
+    body.addEventListener("click", e => {
+        info.close();
+        endScreen.close();
+    })
+})();
+
 
 
 // Needs to check if a victory is possible, needs to check if a victory has occured, and needs to make sure that all possible victories are not ruled out
