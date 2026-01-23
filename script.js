@@ -1,11 +1,4 @@
-// Function that starts the game to keep everything out of global (possible iife)
-// An object that contains a 3x3 array of the board and methods to change the board.
-// One method take a players mark and location on the board, changes the board, and then console logs the board.
-// This calls another method which takes a mark and sees if the current mark equals any possible victory conditions.
-//   If so, it will list a winner and end the game.  If all spaces are filled, it will state a tie (possibly introduce logic for realizing a game is unwinnable)
-// Needs a player factory.  The factory takes a mark (x or o).
-// Player objects have access to the method to change the board, but not see the board outside of the change.  This method should only take a tile number.
-// 
+// The goal of this project is to practice keeping as much code out of the global scope as possible with IIFE's and factory functions.
 
 function startGame() {
     console.log("Starting a new game!")
@@ -16,26 +9,18 @@ function startGame() {
             "", "", ""
         ];
         const listOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
-        const staticListOfVictories = [[0, 1, 2], [0, 3, 6], [0, 4, 8], [1, 4, 7], [3, 4, 5], [2, 5, 8], [6, 7, 8], [2, 4, 6]];
-        
+        // lastPlayed can be removed for the dom only version, but it is kept for console play.
         let lastPlayed = ""
+
         const victory = (mark) => {
             console.log(`Player ${mark} has won!`);
-            boardClear();
+            console.log("Run a new game to play again!")
             return `${mark}victory`;
         }
-        function boardClear() {
-            console.log("Resetting Game");
-            for (let i = 0; i < boardArray.length; i++) {
-                boardArray[i] = "";
-            }
-            lastPlayed = "";
-            listOfVictories.splice(0,listOfVictories.length);
-            for (const item of staticListOfVictories) {
-                listOfVictories.push(item);
-            }
-        }
 
+        // checkVictory iterates through every possible combination of tiles that can lead to a victory.
+        //Since no winning line can have both player's marks, if both player's have a mark on a line it will be removed from a list of possible victories for performance.
+        //If a line does not include both marks and includes no empty spaces, we give the victory to the current player since you can never lose on your own turn.
         const checkVictory = (mark) => {
             for (let i = listOfVictories.length -1; i >= 0; i--) {
                 const item = listOfVictories[i];
@@ -46,10 +31,9 @@ function startGame() {
                     return victory(mark);
                 }
             }
-            
+            // If no possible victories remain the game is called in a tie.
             if (listOfVictories.length === 0) {
                 console.log("Its a tie! All tiles are filled!")
-                boardClear();
                 return "tie"
             } else {
                 return "";
@@ -57,6 +41,7 @@ function startGame() {
         }
 
         const changePosition = (mark, position) => {
+            // Once again this first error message is only for console play.
             if (lastPlayed === mark) {
                 console.log(`Player ${mark} just played! You can't take two turns in a row, thats cheating!`)
                 return "doublePlay";
@@ -82,11 +67,6 @@ function startGame() {
 
     return {turnX: playerX.changePosition, turnO: playerO.changePosition}
 }
-// Need to decide which side goes first.
-//Depending on choice, a variable deciding whos turn it is is set to either x or o
-// Each tile has an event listener that will trigger player X/O placement depending on the turn variable and will switch the turn variable.
-// The text content of that tile's text content will be set to x or o.
-// A new game gets called each time the game concludes.  A running tally of x vs o will be increased.
 
 (function() {
     let currentTurn;
@@ -99,10 +79,10 @@ function startGame() {
     const info = document.querySelector(".information");
     const endScreen = document.querySelector(".end-screen");
     const body = document.querySelector("body");
-    
+    const buttons = document.querySelectorAll(".button-container button");
     const modal = document.querySelector(".button-screen");
     modal.showModal();
-    const buttons = document.querySelectorAll(".button-container button");
+    // Since there are only two options of O or X in most choices, O is checked first and then it is assumed if the answer is not O, it must be X.
     for (const button of buttons) {
         button.addEventListener("click", e => {
             modal.close();
@@ -119,48 +99,43 @@ function startGame() {
     for (const tile of tiles) {
         tile.addEventListener("click", e => {
             tileNum = tile.classList.value.replace("tile square", "")
+            // An empty action is means that nothing special is occuring (an error or victory), and the game should continue on as normal.
+            let action;
             if (currentTurn === "O") {
-                let action = game.turnO(tileNum);
-                if (action === "") {
+                action = game.turnO(tileNum);
+            } else {
+                action = game.turnX(tileNum);
+            }
+            if (action === "") {
+                if (currentTurn === "O") {
                     tile.textContent = "O";
                     currentTurn = "X";
-                } else if (action === "Ovictory") {
-                    e.stopPropagation();
-                    endScreen.textContent = `${playerNameO.value} has won!`;
-                    endScreen.show();
-                    tallyO++;
-                    resetBoard();
-                } else if (action === "tie") {
-                    e.stopPropagation();
-                    endScreen.textContent ="Its a tie!";
-                    endScreen.show();
-                    resetBoard();
-                }else {
-                    e.stopPropagation();
-                    info.textContent = "That tile is already taken!  Choose another one!";
-                    info.show();
-                }
-            } else {
-                let action = game.turnX(tileNum);
-                if (action === "") {
+                } else {
                     tile.textContent = "X";
                     currentTurn = "O";
-                } else if (action === "Xvictory") {
-                    e.stopPropagation();
-                    endScreen.textContent = `${playerNameX.value} has won!`;
-                    endScreen.show();
-                    tallyX++;
-                    resetBoard();
-                } else if (action === "tie") {
-                    e.stopPropagation();
-                    endScreen.textContent ="Its a tie!";
-                    endScreen.show();
-                    resetBoard();
-                }else {
-                    e.stopPropagation();
-                    info.textContent = "That tile is already taken!  Choose another one!";
-                    info.show();
                 }
+            //The stopPropagation()s are so that the dialog popup does not instanty dissapear. I was tempted to put it earlier in the eventlistner instead of repeating 3x
+            //However I do want the dialogs to disapear on a valid action, so I kept it like this. 
+            } else if (action === "Ovictory" || action === "Xvictory") {
+                e.stopPropagation();
+                if (action === "Ovictory") {
+                    endScreen.textContent = `${playerNameO.value} has won!`;
+                    tallyO++;
+                } else {
+                    endScreen.textContent = `${playerNameX.value} has won!`;
+                    tallyX++;
+                }
+                endScreen.show();
+                resetBoard();
+            } else if (action === "tie") {
+                e.stopPropagation();
+                endScreen.textContent ="Its a tie!";
+                endScreen.show();
+                resetBoard();
+            }else {
+                e.stopPropagation();
+                info.textContent = "That tile is already taken!  Choose another one!";
+                info.show();
             }
         })
     }
@@ -182,12 +157,3 @@ function startGame() {
         endScreen.close();
     })
 })();
-
-
-
-// Needs to check if a victory is possible, needs to check if a victory has occured, and needs to make sure that all possible victories are not ruled out
-// The function cant cancel the game early.
-// Function 1. Has an object with a list of possible victories.  Each value is an array.
-// Have a function that checks if the value is true or not.  If it is not false, it destructures each value in the array and checks to see if is 
-// The function checks each value to see if it contains both X and O, if it does the value is then set to false.
-//  If it does not contain both, it checks for a victory.
